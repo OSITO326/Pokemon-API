@@ -15,3 +15,7 @@ Y para construir el build, recuerden:
 ```bash
 npm run build
 ```
+
+## Ver página
+
+En este [link](https://osito326.github.io/Pokemon-API/) pódras ver la página.
