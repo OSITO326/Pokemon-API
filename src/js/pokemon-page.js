@@ -2,7 +2,10 @@ import '../css/pokemon-page.css';
 import constants from './CONSTANTS';
 import { fetchPokemon } from './http-provider';
 const body = document.body;
-let headerPage, mainPokemon;
+let headerPage,
+  mainPokemon,
+  allPokemons = [];
+const selectedTypes = new Set();
 
 const createHeader = () => {
   const html = `
@@ -35,6 +38,43 @@ const createHeader = () => {
   header.innerHTML = html;
   body.appendChild(header);
   headerPage = document.querySelector('header');
+
+  const buttons = headerPage.querySelectorAll('.btn-header');
+  buttons.forEach((button) => {
+    button.addEventListener('click', async (event) => {
+      const tipo = event.target.id;
+      console.log('Tipo: ', tipo);
+
+      // Toggle the selected type
+      if (tipo === 'ver-todos') {
+        selectedTypes.clear(); // Limpiar todos los tipos seleccionados
+      } else {
+        selectedTypes.clear(); // Limpiar todos los tipos seleccionados antes de agregar el nuevo
+        selectedTypes.add(tipo);
+      }
+
+      // Call the filter function
+      filterPokemonsByType(selectedTypes);
+    });
+  });
+};
+
+// partial
+const filterPokemonsByType = (typesSet) => {
+  // Filter Pokémon based on selected types
+  const filteredPokemons =
+    typesSet.size === 0
+      ? allPokemons
+      : allPokemons.filter((pokemon) =>
+          pokemon.types.some((type) => typesSet.has(type)),
+        );
+
+  // Clear existing Pokémon cards
+  // mainPokemon.innerHTML = '';
+  clearPokemonCard();
+
+  // Create and display filtered Pokémon cards
+  filteredPokemons.forEach(createPokemon);
 };
 
 const createPokemon = ({ id, name, img, stats, height, weight, types }) => {
@@ -59,8 +99,8 @@ const createPokemon = ({ id, name, img, stats, height, weight, types }) => {
           <div class="container text-center">
             <div class="row row-cols-2">
               <div class="col">
-                <p><b>Altura:</b>${height}m</p>
-                <p><b>Peso:</b>${weight}kg</p>
+                <p><b>Altura: </b>${height}m</p>
+                <p><b>Peso: </b>${weight}kg</p>
               </div>
               <div class="col">
                 <ul>
@@ -75,21 +115,38 @@ const createPokemon = ({ id, name, img, stats, height, weight, types }) => {
     </div>
   </div>
   `;
-  const main = document.createElement('main');
-  main.innerHTML = html;
-  body.appendChild(main);
-  mainPokemon = document.querySelector('main');
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  div.classList.add('card-body', 'mb-3', 'mt-3');
+  body.appendChild(div);
+  mainPokemon = document.querySelector('div');
 };
 
-const drawPokemon = () => {
+const clearPokemonCard = () => {
+  if (mainPokemon) {
+    mainPokemon.innerHTML = '';
+  }
+};
+// partial
+const drawPokemon = async () => {
+  allPokemons = [];
+  for (let i = 1; i <= constants.firstGeneration; i++) {
+    const pokemon = await fetchPokemon(i);
+    allPokemons.push(pokemon);
+  }
+  // Save allPokemons globally for filtering
+  window.allPokemons = allPokemons;
+  // Display all Pokémon cards
+  allPokemons.forEach(createPokemon);
+};
+
+/* const drawPokemon = () => {
   for (let i = 1; i <= constants.firstGeneration; i++) {
     fetchPokemon(i).then(createPokemon);
   }
-};
+}; */
 
 export const init = () => {
   createHeader();
   drawPokemon();
-  // fetchPokemon(1).then(createPokemon);
-  fetchPokemon(1).then(console.log);
 };

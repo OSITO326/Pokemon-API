@@ -6,14 +6,21 @@ const fetchPokemon = async (id) => {
   try {
     const resp = await fetch(`${urlPokemon}/${id}`);
     const { name, sprites, stats, height, weight, types } = await resp.json();
+    const formattedStats = Array.isArray(stats)
+      ? stats.map(({ stat, base_stat }) => ({
+          stat: stat.name || 'Unknown',
+          base_stat,
+        }))
+      : [];
     return {
       id,
       name,
       img: sprites.other['official-artwork'].front_default,
-      stats: stats.map(({ stat, base_stat }) => ({
-        stat: stat.name,
-        base_stat,
-      })),
+      stats: formattedStats,
+      // stats: stats.map(({ stat, base_stat }) => ({
+      //   stat: stat.name,
+      //   base_stat,
+      // })),
       height,
       weight,
       types: types.map(({ type }) => type.name),
